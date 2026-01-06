@@ -1,0 +1,5 @@
+{
+  "name": "Imaginarium AI",
+  "description": "A professional-grade image generation suite powered by Google's Gemini 3 Pro and Flash models. Features dual-model selection, aspect ratio control, and a history gallery.",
+  "requestFramePermissions": []
+}

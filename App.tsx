@@ -106,8 +106,12 @@ const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isExiting, setIsExiting] = useState(false); // State for exit animation
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -146,10 +150,11 @@ const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
 
         // Auto login if session is active
         if (data.session) {
-          onLogin(apiKey);
+          setIsExiting(true); // Trigger exit animation
+          setTimeout(() => onLogin(apiKey), 800); // Wait for animation
         } else {
           // Maybe email confirmation is on, but for now we assume auto-login or prompt
-          setSuccessMsg("Account created! Please check your email or login.");
+          setSuccessMsg("Account created! Please login.");
           setIsSignup(false);
         }
 
@@ -166,16 +171,31 @@ const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
         const storedKey = data.user?.user_metadata?.gemini_api_key;
 
         if (storedKey) {
-          // Validate stored key just in case (optional, but good for UX)
-          // const isValid = await validateApiKey(storedKey); // Skip for speed on login
+          // Persistence Handling
+          if (rememberMe) {
+            localStorage.setItem('imaginarium_remember_me', 'true');
+          } else {
+            localStorage.removeItem('imaginarium_remember_me');
+          }
+
           setSuccessMsg("Login successful!");
-          setTimeout(() => onLogin(storedKey), 500);
+          setIsExiting(true); // Trigger exit animation
+          setTimeout(() => onLogin(storedKey), 800); // Wait for animation
         } else {
-          // User exists but has no key (Legacy or specific case)
-          // For now, treat as error or ask to update. 
-          // We'll just guide them to a "Update Key" flow if we were advanced, 
-          // but here we throw error to keep it simple as per requirements.
-          throw new Error("No API Key found for this user. Please contact support.");
+          // If they don't have a key but logged in successfully, maybe prompt to add one?
+          // For now, let's allow login but they will need to update settings.
+          setSuccessMsg("Logged in, but no API Key found.");
+          // We can still log them in, logic in App main component handles null apiKey?
+          // Actually App requires apiKey to show main screen.
+          // Let's guide them to a prompt (simulated here since we are inside AuthScreen).
+          const newKey = window.prompt("Welcome! Please enter your Gemini API Key to continue:");
+          if (newKey && newKey.trim()) {
+            await updateUserApiKey(newKey);
+            setIsExiting(true);
+            setTimeout(() => onLogin(newKey), 800);
+          } else {
+            throw new Error("API Key required to continue.");
+          }
         }
       }
     } catch (err: any) {
@@ -187,8 +207,8 @@ const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8 bg-gray-900/50 p-8 rounded-2xl border border-gray-800 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+    <div className={`min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 transition-all duration-1000 ${isExiting ? 'opacity-0 scale-105 filter blur-xl' : 'opacity-100 scale-100 filter blur-0'}`}>
+      <div className="w-full max-w-md space-y-8 bg-gray-900/50 p-8 rounded-2xl border border-gray-800 backdrop-blur-xl shadow-2xl relative overflow-hidden transition-all pb-10">
         {/* Background Decoration */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -209,6 +229,8 @@ const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
             <label className="text-xs font-medium text-gray-400 uppercase tracking-wide ml-1">Email</label>
             <input
               type="email"
+              name="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700"
@@ -220,29 +242,67 @@ const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
           {/* Password Field */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-400 uppercase tracking-wide ml-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete={isSignup ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700 pr-10"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
+              >
+                {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
+
+          {/* Remember Me (Login Only) */}
+          {!isSignup && (
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-700 bg-gray-900 text-indigo-600 focus:ring-indigo-500"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400 select-none cursor-pointer">
+                Remember me
+              </label>
+            </div>
+          )}
 
           {/* Signup Specific Fields */}
           {isSignup && (
             <div className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-300">
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-400 uppercase tracking-wide ml-1">Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700"
-                  placeholder="••••••••"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirm-password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700 pr-10"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -311,9 +371,19 @@ export default function App() {
   const [apiKey, setApiKey] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedKey = localStorage.getItem('imaginarium_api_key');
-    if (storedKey) {
-      setApiKey(storedKey);
+    // Session Persistence Check
+    const rememberMe = localStorage.getItem('imaginarium_remember_me');
+    if (rememberMe !== 'true') {
+      // If "Remember Me" was NOT checked, clear token on reload (simulating session only)
+      supabase.auth.signOut().then(() => {
+        localStorage.removeItem('imaginarium_api_key'); // Also clear app state key
+        setApiKey(null);
+      });
+    } else {
+      const storedKey = localStorage.getItem('imaginarium_api_key');
+      if (storedKey) {
+        setApiKey(storedKey);
+      }
     }
   }, []);
 

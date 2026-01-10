@@ -87,7 +87,7 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
     if (resolution.includes("4K")) imageSize = "4K";
 
     // Map Model Alias to Real Gemini Models
-    let modelName = 'gemini-3-pro-image-preview'; // Default High Quality
+    let modelName = 'gemini-1.5-pro'; // Default High Quality
     if (modelAlias.includes("Nano Banana")) {
         modelName = 'gemini-2.5-flash-image'; // Fallback or mapping? Assuming Flash as faster alternative if valid
     }
@@ -98,7 +98,7 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
     };
 
     // Only add imageSize if model is Pro (Flash/Nano doesn't support it depending on version, sticking to logic)
-    if (modelName === 'gemini-3-pro-image-preview') {
+    if (modelName === 'gemini-1.5-pro') {
         imageConfig.imageSize = imageSize;
     }
 

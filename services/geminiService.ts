@@ -33,9 +33,9 @@ export const validateApiKey = async (apiKey: string): Promise<boolean> => {
 
     const client = new GoogleGenAI({ apiKey: cleanKey });
 
-    // Use 'gemini-3-flash-preview' which is standard and widely available for text checks
+    // Use 'gemini-1.5-flash' which is standard and widely available for text checks
     await client.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: 'ping',
     });
     return true;
@@ -46,7 +46,7 @@ export const validateApiKey = async (apiKey: string): Promise<boolean> => {
 };
 
 export const generateImage = async (config: ImageGenerationConfig, apiKey: string): Promise<string> => {
-  const MODEL_NAME = 'gemini-3-pro-image-preview';
+  const MODEL_NAME = 'gemini-1.5-flash-001'; // or 'imagen-3' if supported by the endpoint
 
   // Fallback to window.aistudio logic if no explicit key provided (legacy support), 
   // but prioritize the passed apiKey.

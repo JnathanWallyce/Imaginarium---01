@@ -27,21 +27,23 @@ const getEnvApiKey = (): string => {
 // Function to validate the API Key by making a lightweight call
 export const validateApiKey = async (apiKey: string): Promise<boolean> => {
   try {
-    // Ensure no whitespace
     const cleanKey = apiKey.trim();
     if (!cleanKey) return false;
 
     const client = new GoogleGenAI({ apiKey: cleanKey });
 
-    // Use 'gemini-3-flash' for the absolute latest available model
     await client.models.generateContent({
-      model: 'gemini-3-flash',
+      model: 'gemini-1.5-flash',
       contents: 'ping',
     });
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error("API Key Validation Error:", error);
-    return false;
+    // Extract a cleaner error message if possible
+    const msg = error.message || "Unknown error";
+    if (msg.includes("API_KEY_INVALID")) throw new Error("API Key is invalid or expired.");
+    if (msg.includes("not found")) throw new Error("Specified model not found for your region/key.");
+    throw new Error(`Validation failed: ${msg}`);
   }
 };
 

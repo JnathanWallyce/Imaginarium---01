@@ -127,37 +127,38 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
 }
 
 const BASE_TEMPLATE = `
-Atue como um Diretor de Arte Sênior. Você está criando um anúncio vertical (4:5 ou 9:16) com qualidade **{{RESOLUTION}}**.
+Atue como um Diretor de Arte Sênior de alta performance. O objetivo é criar um criativo publicitário de nível profissional (VSL/Ads) pronto para tráfego pago.
 
---- CONFIGURAÇÃO DE IA (ESTILO) ---
-Estilo Solicitado: {{AI_MODEL_STYLE}}
-(Se for Flux/Midjourney: Foco extremo em fotorrealismo, iluminação volumétrica, texturas de pele ultra-detalhadas e composição cinematográfica).
+--- QUALIDADE TÉCNICA (Obrigatório) ---
+- Use a melhor renderização disponível: Texturas de pele ultra-realistas, iluminação volumétrica e profundidade de campo cinematográfica.
+- **ZERO PIXELIZAÇÃO:** Todos os textos e elementos devem ser gerados em alta fidelidade.
+- Resolução solicitada: **{{RESOLUTION}}**.
 
---- CONTEXTO DO ANÚNCIO ---
-Produto: {{PRODUCT_TYPE}}
-Público Alvo: {{TARGET_AUDIENCE}}
+--- TIPOGRAFIA E ESPAÇAMENTO ---
+- **REGRA DE OURO DO ESPAÇAMENTO:** Para todos os blocos de texto, o espaçamento entre linhas (line-height) DEVE ser exatamente **1.2 vezes** o tamanho da fonte (Tamanho x 1.2). Isso é crucial para uma leitura fluida e estética premium.
+- Estilo: {{AI_MODEL_STYLE}} (Siga este estilo visual para as fontes).
+- Garanta que os textos estejam perfeitamente centralizados ou alinhados conforme a instrução de layout abaixo.
 
---- REGRAS DE LAYOUT (RÍGIDAS) ---
+--- IDENTIDADE DO EXPERT ---
+{{EXPERT_INSTRUCTION}}
+- É CRUCIAL manter a semelhança facial exata das fotos fornecidas. O expert deve parecer natural e bem ambientado no cenário.
+
+--- CONTEXTO E CONTEÚDO ---
+- **Headline:** "{{HEADLINE}}"
+- **Subheadline:** "{{SUB_HEADLINE}}"
+- **CTA (Botão):** "{{CTA_TEXT}}" (Estilo 3D, com brilho e alta definição).
+- **Cenário:** {{SCENE_DESCRIPTION}}
+- **Elementos:** {{VISUAL_OBJECTS}}
+- **Estilo de Fundo:** {{BLUR_STYLE}}
+
+--- REGRAS DE LAYOUT ---
 1. **{{SUBJECT_INSTRUCTION}}**
 2. **{{TEXT_INSTRUCTION}}**
 3. **POSIÇÃO DO LOGO:** {{LOGO_INSTRUCTION}}
 
---- VISIBILIDADE DO TEXTO ---
+--- VISIBILIDADE ---
 {{GRADIENT_INSTRUCTION}}
-O texto deve ser perfeitamente legível sobre a imagem.
-
---- DETALHES VISUAIS ---
-- **Headline:** "{{HEADLINE}}"
-- **Subheadline:** "{{SUB_HEADLINE}}"
-- **CTA (Botão):** "{{CTA_TEXT}}" (Estilo 3D/Gradiente).
-- **Cenário:** {{SCENE_DESCRIPTION}}
-- **Elementos/Objetos:** {{VISUAL_OBJECTS}}
-- **Desfoque/Lente:** {{BLUR_STYLE}} (Aplicar este estilo ao fundo/elementos).
-- **Cores:** Destaque {{MAIN_COLOR}}.
-
---- IMAGENS FORNECIDAS ---
-Use as imagens do Expert para manter a identidade facial.
-Se houver uma máscara fornecida, use-a como guia de composição.
+O texto deve ser o herói da imagem, perfeitamente legível sem comprometer a foto do expert.
 `;
 
 export const generateAdCreative = async (formData: AdFormData, apiKey: string): Promise<string[]> => {
@@ -177,11 +178,14 @@ export const generateAdCreative = async (formData: AdFormData, apiKey: string): 
     const subjectInstruction = getSubjectInstruction(formData.subjectPosition);
     const textInstruction = getTextInstruction(formData.textPosition);
 
+    const expertInstruction = formData.expertImages?.length > 0
+        ? "Mantenha a identidade facial estrita baseada nas fotos do Expert fornecidas."
+        : (formData.expertDescription ? `Gere o Expert com base nesta descrição: ${formData.expertDescription}` : "Gere um Expert (personagem principal) carismático e profissional.");
+
     // Interpolate Base Prompt
     let basePrompt = BASE_TEMPLATE
         .replace(/{{AI_MODEL_STYLE}}/g, formData.aiModel)
-        .replace(/{{PRODUCT_TYPE}}/g, formData.productType || "Serviço Premium")
-        .replace(/{{TARGET_AUDIENCE}}/g, formData.targetAudience || "Geral")
+        .replace(/{{EXPERT_INSTRUCTION}}/g, expertInstruction)
         .replace(/{{SUBJECT_INSTRUCTION}}/g, subjectInstruction)
         .replace(/{{TEXT_INSTRUCTION}}/g, textInstruction)
         .replace(/{{LOGO_INSTRUCTION}}/g, logoInstruction)
@@ -202,14 +206,11 @@ export const generateAdCreative = async (formData: AdFormData, apiKey: string): 
         for (const file of formData.expertImages) {
             parts.push(await fileToPart(file));
         }
-        basePrompt += "\n[SISTEMA]: As imagens acima são o EXPERT. Mantenha a identidade facial estrita.";
-    } else if (formData.expertDescription) {
-        basePrompt += `\n[SISTEMA]: O EXPERT deve ser gerado com esta descrição: "${formData.expertDescription}".`;
     }
 
     if (formData.logoImage) {
         parts.push(await fileToPart(formData.logoImage));
-        basePrompt += "\n[SISTEMA]: A última imagem é o LOGO. Aplique conforme instrução de posição.";
+        basePrompt += "\n[SISTEMA]: A última imagem anexada é o LOGO da marca. Aplique-o conforme a instrução de posição.";
     }
 
     if (formData.maskImage) {

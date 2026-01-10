@@ -301,19 +301,19 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
             </div>
 
             {/* Floating Action Button */}
-            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent z-10">
+            <div className="absolute bottom-6 left-0 w-full px-6 z-10 flex justify-center">
                 <button
                     onClick={onGenerate}
                     disabled={isGenerating}
-                    className={`w-full py-4 rounded-2xl text-white font-bold text-base shadow-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 border border-white/10
+                    className={`h-12 px-8 rounded-xl text-white font-bold text-sm shadow-2xl transition-all transform hover:scale-[1.05] active:scale-[0.95] flex items-center justify-center gap-3 border border-white/10
             ${isGenerating
                             ? 'bg-gray-800 cursor-not-allowed opacity-75'
-                            : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 shadow-fuchsia-500/20'
+                            : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 shadow-fuchsia-500/30'
                         }`}
                 >
                     {isGenerating ? (
                         <>
-                            <svg className="animate-spin -ml-1 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>

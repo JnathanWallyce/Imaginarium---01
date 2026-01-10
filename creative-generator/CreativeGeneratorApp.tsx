@@ -19,7 +19,7 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
     const [copySets, setCopySets] = useState<AdCopySet[]>([]); // Future use
     const [error, setError] = useState<string | null>(null);
     const [language, setLanguage] = useState<Language>('pt');
-    const [viewMode, setViewMode] = useState<'form' | 'workflow' | 'results'>('workflow');
+    const [viewMode, setViewMode] = useState<'form' | 'workflow' | 'results'>('form');
     const [isRemixOpen, setIsRemixOpen] = useState(false);
 
     const handleGenerate = async (overrideData?: AdFormData) => {
@@ -45,9 +45,11 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
             // const copy = await generateCopyIdeas(dataToUse, language, apiKey);
             // setCopySets(copy);
 
-            if (!isWorkflowTrigger) {
+            // If we are in 'form' mode, we stay in 'form' mode to show results 'na lateral'
+            // Only switch to 'results' if we want the full standalone gallery
+            /* if (!isWorkflowTrigger) {
                 setViewMode('results');
-            }
+            } */
         } catch (err: any) {
             console.error(err);
             setError(err.message || t(language, 'errorGeneric'));
@@ -77,10 +79,13 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
 
             {/* Sidebar Navigation */}
             <div className="w-20 bg-[#0F1014] border-r border-[#2A2D36] flex flex-col items-center py-6 z-20">
-                {/* Logo Icon */}
-                <div onClick={() => window.location.href = "/"} className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 mb-8 shadow-lg shadow-violet-500/20 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                </div>
+                <NavButton
+                    active={false}
+                    onClick={() => window.location.href = "/"}
+                    icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>}
+                    tooltip="Voltar ao Menu"
+                    className="mb-8"
+                />
 
                 <div className="space-y-4 w-full px-2">
                     <NavButton
@@ -189,14 +194,14 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
     );
 };
 
-const NavButton = ({ active, onClick, icon, tooltip }: any) => (
-    <div className="relative group flex items-center justify-center">
+const NavButton = ({ active, onClick, icon, tooltip, className = "" }: any) => (
+    <div className={`relative group flex items-center justify-center ${className}`}>
         <button
             onClick={onClick}
             className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200
                 ${active
                     ? 'bg-[#2A2D36] text-white shadow-lg border border-white/10'
-                    : 'text-gray-500 hover:text-gray-300 hover:bg-[#1A1C23]'
+                    : 'text-gray-500 hover:text-gray-300 hover:bg-[#1A1C23] border border-transparent hover:border-white/5'
                 }`}
         >
             {icon}

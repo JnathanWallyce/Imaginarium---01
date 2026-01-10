@@ -90,18 +90,7 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                                 onChange={(e) => handleChange('resolution', e.target.value)}
                             />
                         </div>
-                        <TextField
-                            label={t(language, 'labelProduct')}
-                            placeholder="e.g. Online Course, SaaS..."
-                            value={data.productType}
-                            onChange={(e) => handleChange('productType', e.target.value)}
-                        />
-                        <TextField
-                            label={t(language, 'labelAudience')}
-                            placeholder="Who is this for?"
-                            value={data.targetAudience}
-                            onChange={(e) => handleChange('targetAudience', e.target.value)}
-                        />
+                        {/* Product and Audience fields removed as requested */}
                     </div>
                 </InputSection>
 
@@ -113,26 +102,42 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                     onToggle={() => toggleSection('assets')}
                 >
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider">{t(language, 'labelExpertPhoto')}</label>
-                            <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-[#2A2D36] bg-[#09090b] rounded-xl cursor-pointer hover:border-violet-500/50 hover:bg-[#15171B] transition-all group">
-                                <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                                    <svg className="w-6 h-6 mb-1 text-gray-500 group-hover:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                    <p className="text-[10px] text-gray-500 group-hover:text-gray-300 font-medium">
-                                        {data.expertImages.length > 0 ? `${data.expertImages.length} selected` : 'Upload Photos'}
-                                    </p>
-                                </div>
-                                <input type="file" className="hidden" multiple accept="image/*" onChange={handleExpertFilesChange} />
-                            </label>
+                        <div className="space-y-3">
+                            <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">{t(language, 'labelExpertPhoto')}</label>
+
+                            <div className="relative aspect-square w-full max-w-[280px] mx-auto bg-[#09090b] rounded-xl border border-[#2A2D36] overflow-hidden group hover:border-violet-500/50 transition-all">
+                                {data.expertImages.length > 0 ? (
+                                    <div className="relative w-full h-full">
+                                        <img
+                                            src={URL.createObjectURL(data.expertImages[0])}
+                                            className="w-full h-full object-cover"
+                                            alt="Expert Preview"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={() => handleChange('expertImages', [])}
+                                                className="p-2 bg-red-500/80 rounded-full text-white hover:bg-red-600 transition-colors"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
+                                        <svg className="w-8 h-8 mb-2 text-gray-600 group-hover:text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        <span className="text-[11px] text-gray-500 font-bold uppercase tracking-widest">{t(language, 'labelExpertPhoto')}</span>
+                                        <input type="file" className="hidden" accept="image/*" onChange={handleExpertFilesChange} />
+                                    </label>
+                                )}
+                            </div>
+
                             {data.expertImages.length === 0 && (
-                                <div className="mt-2">
-                                    <TextField
-                                        label="Or Describe Expert"
-                                        placeholder="..."
-                                        value={data.expertDescription}
-                                        onChange={(e) => handleChange('expertDescription', e.target.value)}
-                                    />
-                                </div>
+                                <TextField
+                                    label="Or Describe Expert"
+                                    placeholder="..."
+                                    value={data.expertDescription}
+                                    onChange={(e) => handleChange('expertDescription', e.target.value)}
+                                />
                             )}
                         </div>
 
@@ -161,9 +166,9 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                             <div className="col-span-2 group">
                                 <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Highlight</label>
                                 <div
-                                    className="w-full h-[42px] rounded-xl border border-[#2A2D36] flex items-center px-1.5 cursor-pointer relative hover:border-[#3F4451] bg-[#09090b] transition-colors"
+                                    className="w-full h-[42px] rounded-xl border border-[#2A2D36] flex items-center px-3 cursor-pointer relative hover:border-[#3F4451] bg-[#09090b] transition-colors"
                                 >
-                                    <div className="w-full h-7 rounded-lg" style={{ backgroundColor: data.mainColor }}></div>
+                                    <span className="text-[11px] font-mono text-gray-400 group-hover:text-violet-400 transition-colors">{data.mainColor}</span>
                                     <input
                                         type="color"
                                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"

@@ -126,40 +126,29 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
     }
 }
 
-const BASE_TEMPLATE = `
-Atue como um Diretor de Arte Sênior de alta performance. O objetivo é criar um criativo publicitário de nível profissional (VSL/Ads) pronto para tráfego pago.
+// --- NANO-BANANA PROMPT ENGINE ---
 
---- QUALIDADE TÉCNICA (Obrigatório) ---
-- Use a melhor renderização disponível: Texturas de pele ultra-realistas, iluminação volumétrica e profundidade de campo cinematográfica.
-- **ZERO PIXELIZAÇÃO:** Todos os textos e elementos devem ser gerados em alta fidelidade.
-- Resolução solicitada: **{{RESOLUTION}}**.
+const getNarrativePrompt = (data: any) => {
+    const name = data.expertName || "the Expert";
+    const modelStyle = data.aiModel.includes('SeaDream') ? "SeaDream Cinematic High Fidelity" : (data.aiModel.includes('Nano Banana') ? "Google Nano-Banana Pro Precision" : data.aiModel);
 
---- TIPOGRAFIA E ESPAÇAMENTO ---
-- **REGRA DE OURO DO ESPAÇAMENTO:** Para todos os blocos de texto, o espaçamento entre linhas (line-height) DEVE ser exatamente **1.2 vezes** o tamanho da fonte (Tamanho x 1.2). Isso é crucial para uma leitura fluida e estética premium.
-- Estilo: {{AI_MODEL_STYLE}} (Siga este estilo visual para as fontes).
-- Garanta que os textos estejam perfeitamente centralizados ou alinhados conforme a instrução de layout abaixo.
+    // Core Narrative Piece
+    let prompt = `Using the provided image of the person, create a high-performance ultra-realistic commercial advertisement in ${data.resolution} resolution where they appear as a successful entrepreneur and professional authority. It is crucial that the person is a perfect likeness of ${name}, maintaining all distinctive facial features, hair style, eye color, and physical build with 100% fidelity. `;
 
---- IDENTIDADE DO EXPERT ---
-{{EXPERT_INSTRUCTION}}
-- É CRUCIAL manter a semelhança facial exata das fotos fornecidas. O expert deve parecer natural e bem ambientado no cenário.
+    // Scene & Character Details
+    prompt += `The character is dressed in premium, context-appropriate business-casual attire, shown in a ${data.subjectPosition} composition. They have a confident and welcoming expression, executing a professional pose within a ${data.sceneDescription} environment. `;
 
---- CONTEXTO E CONTEÚDO ---
-- **Headline:** "{{HEADLINE}}"
-- **Subheadline:** "{{SUB_HEADLINE}}"
-- **CTA (Botão):** "{{CTA_TEXT}}" (Estilo 3D, com brilho e alta definição).
-- **Cenário:** {{SCENE_DESCRIPTION}}
-- **Elementos:** {{VISUAL_OBJECTS}}
-- **Estilo de Fundo:** {{BLUR_STYLE}}
+    // Visuals & Atmosphere
+    prompt += `The scene features ${data.visualObjects} and is characterized by ${data.blurStyle} with cinematic volumetric lighting that accentuates the depth. The atmosphere is professional, sleek, and high-end, using a color palette highlighted by ${data.mainColor} to ensure a premium visual identity. `;
 
---- REGRAS DE LAYOUT ---
-1. **{{SUBJECT_INSTRUCTION}}**
-2. **{{TEXT_INSTRUCTION}}**
-3. **POSIÇÃO DO LOGO:** {{LOGO_INSTRUCTION}}
+    // Typography & Technicals (Line-height 1.2x rule)
+    prompt += `Integrated into the composition, the headline "${data.headline}" and sub-headline "${data.subHeadline}" are rendered in ${data.textStyle} with perfect clarity and no pixelation. **GOLDEN RULE FOR TYPOGRAPHY: The line-height for all text blocks MUST be exactly 1.2 times the font size (1.2x factor) to ensure professional balance.** The text block is positioned at ${data.textPosition} and remains perfectly legible over the image. `;
 
---- VISIBILIDADE ---
-{{GRADIENT_INSTRUCTION}}
-O texto deve ser o herói da imagem, perfeitamente legível sem comprometer a foto do expert.
-`;
+    // CTA & Logo
+    prompt += `A prominent call-to-action button with the text "${data.ctaText}" is designed with 3D depth and subtle glows. Finally, the brand logo is logically placed ${data.logoPosition}, completing the high-converting ad layout for ${data.platform}.`;
+
+    return prompt;
+};
 
 export const generateAdCreative = async (formData: AdFormData, apiKey: string): Promise<string[]> => {
     if (!apiKey) throw new Error("API Key is missing.");
@@ -175,29 +164,7 @@ export const generateAdCreative = async (formData: AdFormData, apiKey: string): 
 
     const gradientInstruction = getGradientInstruction(formData.textPosition, formData.textOverlayColor);
     const logoInstruction = getLogoInstruction(formData.logoPosition);
-    const subjectInstruction = getSubjectInstruction(formData.subjectPosition);
-    const textInstruction = getTextInstruction(formData.textPosition);
-
-    const expertInstruction = formData.expertImages?.length > 0
-        ? "Mantenha a identidade facial estrita baseada nas fotos do Expert fornecidas."
-        : (formData.expertDescription ? `Gere o Expert com base nesta descrição: ${formData.expertDescription}` : "Gere um Expert (personagem principal) carismático e profissional.");
-
-    // Interpolate Base Prompt
-    let basePrompt = BASE_TEMPLATE
-        .replace(/{{AI_MODEL_STYLE}}/g, formData.aiModel)
-        .replace(/{{EXPERT_INSTRUCTION}}/g, expertInstruction)
-        .replace(/{{SUBJECT_INSTRUCTION}}/g, subjectInstruction)
-        .replace(/{{TEXT_INSTRUCTION}}/g, textInstruction)
-        .replace(/{{LOGO_INSTRUCTION}}/g, logoInstruction)
-        .replace(/{{GRADIENT_INSTRUCTION}}/g, gradientInstruction)
-        .replace(/{{HEADLINE}}/g, formData.headline)
-        .replace(/{{SUB_HEADLINE}}/g, formData.subHeadline)
-        .replace(/{{CTA_TEXT}}/g, formData.ctaText)
-        .replace(/{{SCENE_DESCRIPTION}}/g, formData.sceneDescription)
-        .replace(/{{VISUAL_OBJECTS}}/g, formData.visualObjects)
-        .replace(/{{BLUR_STYLE}}/g, formData.blurStyle)
-        .replace(/{{MAIN_COLOR}}/g, formData.mainColor)
-        .replace(/{{RESOLUTION}}/g, formData.resolution);
+    const basePrompt = getNarrativePrompt(formData);
 
     // Prepare Parts
     const parts: any[] = [];
@@ -210,12 +177,10 @@ export const generateAdCreative = async (formData: AdFormData, apiKey: string): 
 
     if (formData.logoImage) {
         parts.push(await fileToPart(formData.logoImage));
-        basePrompt += "\n[SISTEMA]: A última imagem anexada é o LOGO da marca. Aplique-o conforme a instrução de posição.";
     }
 
     if (formData.maskImage) {
         parts.push(await fileToPart(formData.maskImage));
-        basePrompt += "\n[SISTEMA]: A imagem de alto contraste (Preto/Branco) é uma MÁSCARA DE COMPOSIÇÃO. Use-a para definir onde colocar os elementos.";
     }
 
     parts.push({ text: basePrompt });

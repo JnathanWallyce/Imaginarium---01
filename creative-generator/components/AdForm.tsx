@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { AdFormData, PLATFORMS, BLUR_STYLES, RESOLUTIONS, TEXT_STYLES, Language } from '../types';
+import { AdFormData, PLATFORMS, BLUR_STYLES, RESOLUTIONS, TEXT_STYLES, AI_MODELS, Language } from '../types';
 import { InputSection, TextField, SelectField, ToggleGroup } from './InputSection';
 import { t } from '../utils/translations';
 
@@ -102,6 +102,12 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                     onToggle={() => toggleSection('assets')}
                 >
                     <div className="space-y-4">
+                        <TextField
+                            label={t(language, 'labelExpertName')}
+                            placeholder="Ex: Jonathan Wallyce"
+                            value={data.expertName}
+                            onChange={(e) => handleChange('expertName', e.target.value)}
+                        />
                         <div className="space-y-3">
                             <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">{t(language, 'labelExpertPhoto')}</label>
 
@@ -140,6 +146,13 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                                 />
                             )}
                         </div>
+
+                        <SelectField
+                            label="AI Engine / Modelo"
+                            options={AI_MODELS}
+                            value={data.aiModel}
+                            onChange={(e) => handleChange('aiModel', e.target.value)}
+                        />
 
                         <div>
                             <label className="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider">{t(language, 'labelLogoFile')}</label>

@@ -13,7 +13,7 @@ type TranslationKey =
     | 'labelScene' | 'labelObjects' | 'labelColor' | 'labelBrandColors' | 'labelBlur' | 'labelResolution'
     | 'labelTextStyle'
     | 'sectionAssets' | 'sectionAssetsDesc'
-    | 'labelExpertPhoto' | 'labelExpertDesc'
+    | 'labelExpertPhoto' | 'labelExpertName' | 'labelExpertDesc'
     | 'labelLogoFile' | 'labelLogoDesc'
     | 'btnGenerate' | 'btnGenerating'
     | 'previewReady' | 'previewReadyDesc'
@@ -50,6 +50,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
         sectionAssets: 'Assets (Optional)',
         sectionAssetsDesc: 'Upload reference images for higher personalization.',
         labelExpertPhoto: 'Expert Photo Reference',
+        labelExpertName: 'Expert Name',
         labelExpertDesc: 'Or Describe the Expert',
         labelLogoFile: 'Logo File',
         labelLogoDesc: 'Or Describe Logo Style',
@@ -93,6 +94,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
         sectionAssets: 'Ativos (Opcional)',
         sectionAssetsDesc: 'Envie imagens de referência para maior personalização.',
         labelExpertPhoto: 'Foto de Referência do Expert',
+        labelExpertName: 'Nome do Expert',
         labelExpertDesc: 'Ou Descreva o Expert',
         labelLogoFile: 'Arquivo de Logo',
         labelLogoDesc: 'Ou Descreva o Estilo do Logo',
@@ -136,6 +138,7 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
         sectionAssets: 'Activos (Opcional)',
         sectionAssetsDesc: 'Sube imágenes de referencia para mayor personalización.',
         labelExpertPhoto: 'Foto de Referencia del Experto',
+        labelExpertName: 'Nombre del Experto',
         labelExpertDesc: 'O Describe al Experto',
         labelLogoFile: 'Archivo de Logo',
         labelLogoDesc: 'O Describe el Estilo del Logo',

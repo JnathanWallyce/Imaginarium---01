@@ -87,9 +87,9 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
     if (resolution.includes("4K")) imageSize = "4K";
 
     // Map Model Alias to Real Gemini Models
-    let modelName = 'gemini-3-pro'; // Default High Quality - Gemini 3 Pro
+    let modelName = 'gemini-3-pro-image-preview'; // High Fidelity Gemini 3 Pro Image model
     if (modelAlias.includes("Nano Banana")) {
-        modelName = 'gemini-3-flash'; // Using Gemini 3 Flash for experimental "Nano Banana"
+        modelName = 'gemini-2.5-flash-image'; // High-speed Gemini 2.5 Flash Image model
     }
 
     // Construct Config
@@ -97,8 +97,8 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
         aspectRatio: aspectRatio
     };
 
-    // Only add imageSize if model is Pro
-    if (modelName.includes('gemini-3-pro')) {
+    // Only add imageSize if model is Gemini 3 Pro Image
+    if (modelName === 'gemini-3-pro-image-preview') {
         imageConfig.imageSize = imageSize;
     }
 

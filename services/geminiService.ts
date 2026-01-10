@@ -51,7 +51,7 @@ export const validateApiKey = async (apiKey: string): Promise<boolean> => {
 };
 
 export const generateImage = async (config: ImageGenerationConfig, apiKey: string): Promise<string> => {
-  const MODEL_NAME = 'gemini-3-flash'; // Using Gemini 3 Flash for speed and quality
+  const MODEL_NAME = 'gemini-3-pro-image-preview'; // Gemini 3 Pro with high-fidelity image capabilities
 
   // Fallback to window.aistudio logic if no explicit key provided (legacy support), 
   // but prioritize the passed apiKey.

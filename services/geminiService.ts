@@ -33,9 +33,9 @@ export const validateApiKey = async (apiKey: string): Promise<boolean> => {
 
     const client = new GoogleGenAI({ apiKey: cleanKey });
 
-    // Use 'gemini-1.5-flash-latest' for the most recent stable flash model
+    // Use 'gemini-3-flash' for the absolute latest available model
     await client.models.generateContent({
-      model: 'gemini-1.5-flash-latest',
+      model: 'gemini-3-flash',
       contents: 'ping',
     });
     return true;
@@ -46,7 +46,7 @@ export const validateApiKey = async (apiKey: string): Promise<boolean> => {
 };
 
 export const generateImage = async (config: ImageGenerationConfig, apiKey: string): Promise<string> => {
-  const MODEL_NAME = 'gemini-1.5-flash-latest'; // Most recent stable flash model
+  const MODEL_NAME = 'gemini-3-flash'; // Using Gemini 3 Flash for speed and quality
 
   // Fallback to window.aistudio logic if no explicit key provided (legacy support), 
   // but prioritize the passed apiKey.

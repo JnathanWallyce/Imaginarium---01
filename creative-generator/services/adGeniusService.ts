@@ -128,24 +128,39 @@ const generateSingleImage = async (parts: any[], aspectRatio: string, resolution
 
 // --- NANO-BANANA PROMPT ENGINE ---
 
-const getNarrativePrompt = (data: any) => {
+const getNarrativePrompt = (data: any, expertCount: number, hasLogo: boolean, hasMask: boolean) => {
     const name = data.expertName || "the Expert";
-    const modelStyle = data.aiModel.includes('SeaDream') ? "SeaDream Cinematic High Fidelity" : (data.aiModel.includes('Nano Banana') ? "Google Nano-Banana Pro Precision" : data.aiModel);
 
-    // Core Narrative Piece
-    let prompt = `Using the provided image of the person, create a high-performance ultra-realistic commercial advertisement in ${data.resolution} resolution where they appear as a successful entrepreneur and professional authority. It is crucial that the person is a perfect likeness of ${name}, maintaining all distinctive facial features, hair style, eye color, and physical build with 100% fidelity. `;
+    let prompt = `[CRITICAL SYSTEM OVERRIDE - IDENTITY PRESERVATION]:
+This is a high-stakes commercial generation. You MUST maintain 100% anatomical facial fidelity. 
+The first ${expertCount} image(s) provided are your MASTER FACE REFERENCE. 
+Extract the facial features of ${name} from these images and transplant them with perfect likeness onto the character in the scene. 
+The character's face MUST be identical to the reference images. Do not generate a generic or approximated face.
 
-    // Scene & Character Details
-    prompt += `The character is dressed in premium, context-appropriate business-casual attire, shown in a ${data.subjectPosition} composition. They have a confident and welcoming expression, executing a professional pose within a ${data.sceneDescription} environment. `;
+[SCENE INSTRUCTION]:
+Create a high-performance ultra-realistic commercial advertisement in ${data.resolution} resolution. 
+${name} should be depicted as a successful professional authority. 
+${hasMask ? "STRUCTURE: You MUST follow the exact structural layout and composition provided in the provided MASK/REFERENCE image (the last image attached)." : ""}
+Character Placement: ${data.subjectPosition}. 
+Environment: ${data.sceneDescription}.
+Clothing: Premium business-casual attire.
+Lighting: Cinematic volumetric lighting with high-end depth of field.
+Atmosphere: Professional, sleek, and premium.
+Color Palette: Accentuate with ${data.mainColor}.
+Visual Objects: ${data.visualObjects}.
+Blur Style: ${data.blurStyle}.
 
-    // Visuals & Atmosphere
-    prompt += `The scene features ${data.visualObjects} and is characterized by ${data.blurStyle} with cinematic volumetric lighting that accentuates the depth. The atmosphere is professional, sleek, and high-end, using a color palette highlighted by ${data.mainColor} to ensure a premium visual identity. `;
+[TYPOGRAPHY & BRANDING]:
+- Headline: "${data.headline}"
+- Sub-headline: "${data.subHeadline}"
+- CTA: "${data.ctaText}" (Rendered as a premium 3D button).
+- TYPOGRAPHY RULE: Line-height MUST be exactly 1.2x the font size (Line-spacing = 1.2).
+- QUALITY: Zero pixelation. All text and logos must be crystal clear and high-resolution.
+- Text Position: ${data.textPosition}.
+${hasLogo ? "- BRANDING: Integrate the provided LOGO image perfectly into the " + data.logoPosition + " position." : ""}
 
-    // Typography & Technicals (Line-height 1.2x rule)
-    prompt += `Integrated into the composition, the headline "${data.headline}" and sub-headline "${data.subHeadline}" are rendered in ${data.textStyle} with perfect clarity and no pixelation. **GOLDEN RULE FOR TYPOGRAPHY: The line-height for all text blocks MUST be exactly 1.2 times the font size (1.2x factor) to ensure professional balance.** The text block is positioned at ${data.textPosition} and remains perfectly legible over the image. `;
-
-    // CTA & Logo
-    prompt += `A prominent call-to-action button with the text "${data.ctaText}" is designed with 3D depth and subtle glows. Finally, the brand logo is logically placed ${data.logoPosition}, completing the high-converting ad layout for ${data.platform}.`;
+[FINAL REQUIREMENT]:
+The output must look like a professional, non-AI generated studio photograph. The face fidelity to the reference is the most important metric.`;
 
     return prompt;
 };
@@ -164,7 +179,12 @@ export const generateAdCreative = async (formData: AdFormData, apiKey: string): 
 
     const gradientInstruction = getGradientInstruction(formData.textPosition, formData.textOverlayColor);
     const logoInstruction = getLogoInstruction(formData.logoPosition);
-    const basePrompt = getNarrativePrompt(formData);
+    const basePrompt = getNarrativePrompt(
+        formData,
+        formData.expertImages?.length || 0,
+        !!formData.logoImage,
+        !!formData.maskImage
+    );
 
     // Prepare Parts
     const parts: any[] = [];

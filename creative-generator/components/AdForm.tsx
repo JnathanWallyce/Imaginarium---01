@@ -64,7 +64,7 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
     };
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="relative flex flex-col h-full overflow-hidden">
 
             <div className="flex-grow overflow-y-auto custom-scrollbar p-6 space-y-4">
 
@@ -300,15 +300,15 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
 
             </div>
 
-            {/* Floating Action Button */}
-            <div className="absolute bottom-6 left-0 w-full px-6 z-10 flex justify-center">
+            {/* Floating Action Button - Positioned exactly where the sidebar 'purple box' was */}
+            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-[#0F1014] via-[#0F1014] to-transparent z-20">
                 <button
                     onClick={onGenerate}
                     disabled={isGenerating}
-                    className={`h-12 px-8 rounded-xl text-white font-bold text-sm shadow-2xl transition-all transform hover:scale-[1.05] active:scale-[0.95] flex items-center justify-center gap-3 border border-white/10
+                    className={`w-full h-14 rounded-xl text-white font-bold text-base shadow-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 border border-white/10
             ${isGenerating
                             ? 'bg-gray-800 cursor-not-allowed opacity-75'
-                            : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 shadow-fuchsia-500/30'
+                            : 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 shadow-fuchsia-500/20'
                         }`}
                 >
                     {isGenerating ? (

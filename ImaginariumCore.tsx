@@ -100,303 +100,22 @@ const CompareSlider = ({ before, after, labelAfter }: { before: string, after: s
   );
 };
 
-// --- Auth Component ---
-const AuthScreen = ({ onLogin }: { onLogin: (key: string) => void }) => {
-  const [isSignup, setIsSignup] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+// Auth component removed - now in Login.tsx
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isExiting, setIsExiting] = useState(false); // State for exit animation
-  const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMsg('');
-    setIsLoading(true);
-
-    try {
-      if (isSignup) {
-        // --- SIGN UP LOGIC ---
-        if (password !== confirmPassword) {
-          throw new Error("Passwords do not match.");
-        }
-
-        // Validate API Key before creating account
-        const isValidKey = await validateApiKey(apiKey);
-        if (!isValidKey) {
-          throw new Error("Invalid Gemini API Key. Please check and try again.");
-        }
-
-        const { data, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              gemini_api_key: apiKey
-            }
-          }
-        });
-
-        if (authError) throw authError;
-
-        setSuccessMsg("Account created! Logging you in...");
-
-        // Auto login if session is active
-        if (data.session) {
-          setIsExiting(true); // Trigger exit animation
-          setTimeout(() => onLogin(apiKey), 800); // Wait for animation
-        } else {
-          // Maybe email confirmation is on, but for now we assume auto-login or prompt
-          setSuccessMsg("Account created! Please login.");
-          setIsSignup(false);
-        }
-
-      } else {
-        // --- LOGIN LOGIC ---
-        const { data, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (authError) throw authError;
-
-        // Retrieve API Key
-        const storedKey = data.user?.user_metadata?.gemini_api_key;
-
-        if (storedKey) {
-          // Persistence Handling
-          if (rememberMe) {
-            localStorage.setItem('imaginarium_remember_me', 'true');
-          } else {
-            localStorage.removeItem('imaginarium_remember_me');
-          }
-
-          setSuccessMsg("Login successful!");
-          setIsExiting(true); // Trigger exit animation
-          setTimeout(() => onLogin(storedKey), 800); // Wait for animation
-        } else {
-          // If they don't have a key but logged in successfully, maybe prompt to add one?
-          // For now, let's allow login but they will need to update settings.
-          setSuccessMsg("Logged in, but no API Key found.");
-          // We can still log them in, logic in App main component handles null apiKey?
-          // Actually App requires apiKey to show main screen.
-          // Let's guide them to a prompt (simulated here since we are inside AuthScreen).
-          const newKey = window.prompt("Welcome! Please enter your Gemini API Key to continue:");
-          if (newKey && newKey.trim()) {
-            await updateUserApiKey(newKey);
-            setIsExiting(true);
-            setTimeout(() => onLogin(newKey), 800);
-          } else {
-            throw new Error("API Key required to continue.");
-          }
-        }
-      }
-    } catch (err: any) {
-      console.error("Auth Error:", err);
-      setError(err.message || "Authentication failed.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className={`min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 transition-all duration-1000 ${isExiting ? 'opacity-0 scale-105 filter blur-xl' : 'opacity-100 scale-100 filter blur-0'}`}>
-      <div className="w-full max-w-md space-y-8 bg-gray-900/50 p-8 rounded-2xl border border-gray-800 backdrop-blur-xl shadow-2xl relative overflow-hidden transition-all pb-10">
-        {/* Background Decoration */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="text-center space-y-2 relative z-10">
-          <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/20 mb-4 transition-transform hover:scale-105 duration-300">
-            <SparklesIcon className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Imaginarium AI</h1>
-          <p className="text-gray-400 text-sm">
-            {isSignup ? "Create your account & connect API" : "Welcome back, Creator"}
-          </p>
-        </div>
-
-        <form onSubmit={handleAuth} className="space-y-5 relative z-10">
-          {/* Email Field */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide ml-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700"
-              placeholder="name@example.com"
-              required
-            />
-          </div>
-
-          {/* Password Field */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-gray-400 uppercase tracking-wide ml-1">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                autoComplete={isSignup ? "new-password" : "current-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700 pr-10"
-                placeholder="••••••••"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
-              >
-                {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Remember Me (Login Only) */}
-          {!isSignup && (
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-700 bg-gray-900 text-indigo-600 focus:ring-indigo-500"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400 select-none cursor-pointer">
-                Remember me
-              </label>
-            </div>
-          )}
-
-          {/* Signup Specific Fields */}
-          {isSignup && (
-            <div className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-300">
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-400 uppercase tracking-wide ml-1">Confirm Password</label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirm-password"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-gray-950/50 border border-gray-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700 pr-10"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
-                  >
-                    {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-indigo-400 uppercase tracking-wide ml-1 flex justify-between">
-                  <span>Gemini API Key</span>
-                  <a href="https://aistudio.google.com/app/apikey" target="_blank" className="hover:underline opacity-80">Get Key &rarr;</a>
-                </label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value.trim())}
-                  className="w-full bg-gray-950/50 border border-indigo-500/30 rounded-xl p-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder:text-gray-700 font-mono"
-                  placeholder="AIzaSy..."
-                  required
-                />
-                <p className="text-[10px] text-gray-500 leading-tight">
-                  Stored securely. Required for image generation.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center animate-in shake">
-              {error}
-            </div>
-          )}
-          {successMsg && (
-            <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-xs text-center animate-in fade-in">
-              {successMsg}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-4 rounded-xl font-semibold text-white shadow-lg transition-all flex items-center justify-center gap-2 ${isLoading
-              ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25 active:scale-95'
-              }`}
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                {isSignup ? 'Creating Account...' : 'Logging In...'}
-              </>
-            ) : (isSignup ? 'Complete Registration' : 'Sign In')}
-          </button>
-        </form>
-
-        <div className="text-center pt-2">
-          <button
-            onClick={() => { setIsSignup(!isSignup); setError(''); }}
-            className="text-xs text-gray-400 hover:text-white transition-colors"
-          >
-            {isSignup ? "Already have an account? Sign In" : "Don't have an account? Create one"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function App() {
+export default function ImaginariumCore() {
   const navigate = useNavigate();
-  // Authentication State
-  const [apiKey, setApiKey] = useState<string | null>(null);
+  // Shared API Key from localStorage
+  const apiKey = localStorage.getItem('imaginarium_api_key');
 
+  // If no API key, let the router handle redirecting to /
   useEffect(() => {
-    // Session Persistence Check
-    const rememberMe = localStorage.getItem('imaginarium_remember_me');
-    if (rememberMe !== 'true') {
-      // If "Remember Me" was NOT checked, clear token on reload (simulating session only)
-      supabase.auth.signOut().then(() => {
-        localStorage.removeItem('imaginarium_api_key'); // Also clear app state key
-        setApiKey(null);
-      });
-    } else {
-      const storedKey = localStorage.getItem('imaginarium_api_key');
-      if (storedKey) {
-        setApiKey(storedKey);
-      }
-    }
-  }, []);
-
-  const handleLogin = (key: string) => {
-    localStorage.setItem('imaginarium_api_key', key);
-    setApiKey(key);
-  };
+    if (!apiKey) navigate('/');
+  }, [apiKey, navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('imaginarium_api_key');
-    setApiKey(null);
+    localStorage.removeItem('imaginarium_remember_me');
+    navigate('/');
   };
 
   // Mode Selection
@@ -769,9 +488,7 @@ export default function App() {
     }
   };
 
-  if (!apiKey) {
-    return <AuthScreen onLogin={handleLogin} />;
-  }
+  // Removed dedicated Auth check - handled by App Router
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 font-sans selection:bg-indigo-500/30 overflow-y-auto">
@@ -811,7 +528,7 @@ export default function App() {
                   validateApiKey(newKey).then(valid => {
                     if (valid) {
                       updateUserApiKey(newKey).then(() => {
-                        handleLogin(newKey);
+                        localStorage.setItem('imaginarium_api_key', newKey);
                         alert("API Key updated successfully!");
                       }).catch(e => alert("Failed to save key: " + e.message));
                     } else {

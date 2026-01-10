@@ -774,8 +774,19 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans selection:bg-indigo-500/30 overflow-y-auto">
       <canvas ref={canvasRef} className="hidden" />
+
+      {/* Back to Menu Button */}
+      {apiKey && (
+        <button
+          onClick={() => navigate('/')}
+          className="fixed top-20 left-4 z-[60] px-4 py-2 bg-black/50 text-white font-bold text-xs rounded-lg backdrop-blur-md border border-white/10 hover:bg-black/70 flex items-center gap-2 transition-all hover:pl-3 group"
+        >
+          <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          Voltar ao Menu
+        </button>
+      )}
 
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">

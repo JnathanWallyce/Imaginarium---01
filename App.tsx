@@ -76,29 +76,33 @@ const ImaginariumWrapper = () => {
 }
 
 const App = () => {
-    const [hasKey, setHasKey] = useState(!!localStorage.getItem('imaginarium_api_key'));
+    const [apiKey, setApiKey] = useState<string | null>(localStorage.getItem('imaginarium_api_key'));
 
-    // Check for key changes (simple polling or custom event could be better, but for now this works)
+    // Check for key changes to update local state
     useEffect(() => {
         const interval = setInterval(() => {
             const key = localStorage.getItem('imaginarium_api_key');
-            setHasKey(!!key);
-        }, 1000);
+            if (key !== apiKey) setApiKey(key);
+        }, 500);
         return () => clearInterval(interval);
-    }, []);
+    }, [apiKey]);
 
     return (
         <Router>
             <Routes>
                 {/* 
-                  Logic: 
-                  If not logged in, ImaginariumCore renders AuthScreen. 
-                  So we can use ImaginariumCore as the entry point if no key.
-                  If logged in, we show Dashboard at /.
+                  Root Route Logic:
+                  - If NO key: Show ImaginariumCore (which renders AuthScreen internally).
+                  - If key EXISTS: Show Dashboard.
                 */}
-                <Route path="/" element={hasKey ? <Dashboard /> : <ImaginariumCore />} />
-                <Route path="/imaginarium" element={<ImaginariumWrapper />} />
-                <Route path="/creative-generator" element={<CreativeGeneratorWrapper />} />
+                <Route path="/" element={apiKey ? <Dashboard /> : <ImaginariumCore />} />
+
+                {/* 
+                   App Routes:
+                   If no key, we redirect back to root (which will show Login).
+                */}
+                <Route path="/imaginarium" element={apiKey ? <ImaginariumCore /> : <ImaginariumCore />} />
+                <Route path="/creative-generator" element={apiKey ? <CreativeGeneratorApp apiKey={apiKey} /> : <ImaginariumCore />} />
             </Routes>
         </Router>
     );

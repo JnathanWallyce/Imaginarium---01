@@ -78,8 +78,8 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
             {/* Sidebar Navigation */}
             <div className="w-20 bg-[#0F1014] border-r border-[#2A2D36] flex flex-col items-center py-6 z-20">
                 {/* Logo Icon */}
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 mb-8 shadow-lg shadow-violet-500/20 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <div onClick={() => window.location.href = "/"} className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 mb-8 shadow-lg shadow-violet-500/20 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 </div>
 
                 <div className="space-y-4 w-full px-2">

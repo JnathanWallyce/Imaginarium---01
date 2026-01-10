@@ -21,6 +21,7 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
     const [language, setLanguage] = useState<Language>('pt');
     const [viewMode, setViewMode] = useState<'form' | 'workflow' | 'results'>('form');
     const [isRemixOpen, setIsRemixOpen] = useState(false);
+    const [history, setHistory] = useState<string[]>([]); // New Gallery History
 
     const handleGenerate = async (overrideData?: AdFormData) => {
         setIsGenerating(true);
@@ -40,6 +41,7 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
             // Generate Images
             const images = await generateAdCreative(dataToUse, apiKey);
             setGeneratedImages(images);
+            setHistory(prev => [...images, ...prev]); // Add to beginning of gallery
 
             // Generate Copy (Optional/Parallel) - keeping it simple for now
             // const copy = await generateCopyIdeas(dataToUse, language, apiKey);
@@ -160,7 +162,7 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
                             />
                         </div>
                         <ResultView
-                            imageUrls={generatedImages}
+                            imageUrls={generatedImages || history.slice(0, 3)} // Show latest batch or most recent history
                             isGenerating={isGenerating}
                             error={error}
                             language={language}
@@ -171,7 +173,7 @@ const CreativeGeneratorApp: React.FC<CreativeGeneratorAppProps> = ({ apiKey }) =
                     {/* Results View (Standalone) */}
                     <div className={`absolute inset-0 bg-[#050505] transition-opacity duration-300 ${viewMode === 'results' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
                         <ResultView
-                            imageUrls={generatedImages}
+                            imageUrls={history} // Full Gallery History
                             isGenerating={isGenerating}
                             error={error}
                             language={language}

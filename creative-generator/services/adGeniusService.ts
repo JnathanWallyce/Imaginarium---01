@@ -219,10 +219,14 @@ export const generateAdCreative = async (formData: AdFormData, apiKey: string): 
 
     parts.push({ text: basePrompt });
 
-    // Generate 1 High Quality Image based on the specific node request
+    // Generate 3 Variations in parallel
     try {
-        const result = await generateSingleImage(parts, aspectRatio, formData.resolution, formData.aiModel, apiKey);
-        return [result]; // Return array for compatibility
+        const results = await Promise.all([
+            generateSingleImage(parts, aspectRatio, formData.resolution, formData.aiModel, apiKey),
+            generateSingleImage(parts, aspectRatio, formData.resolution, formData.aiModel, apiKey),
+            generateSingleImage(parts, aspectRatio, formData.resolution, formData.aiModel, apiKey)
+        ]);
+        return results;
     } catch (error) {
         console.error("Gemini Generation Error:", error);
         throw error;

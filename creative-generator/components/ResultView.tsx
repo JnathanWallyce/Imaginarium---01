@@ -71,8 +71,8 @@ export const ResultView: React.FC<ResultViewProps> = ({ imageUrls, isGenerating,
                                         <img
                                             src={url}
                                             alt={`Variation ${index + 1}`}
-                                            className="w-full h-full object-cover opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]"
-                                            style={{ animationDelay: `${index * 150}ms` }}
+                                            className="w-full h-full object-cover transition-opacity duration-500"
+                                            onLoad={(e) => (e.currentTarget.style.opacity = '1')}
                                         />
 
                                         {/* Hover Overlay */}

@@ -163,8 +163,8 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                 >
                     <div className="space-y-4">
                         <div className="grid grid-cols-5 gap-3">
-                            <div className="col-span-2 group">
-                                <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Highlight</label>
+                            <div className="col-span-5 group">
+                                <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Highlight Color (Hex)</label>
                                 <div
                                     className="w-full h-[42px] rounded-xl border border-[#2A2D36] flex items-center px-3 cursor-pointer relative hover:border-[#3F4451] bg-[#09090b] transition-colors"
                                 >
@@ -176,14 +176,6 @@ export const AdForm: React.FC<AdFormProps> = ({ data, onChange, isGenerating, on
                                         onChange={(e) => handleChange('mainColor', e.target.value)}
                                     />
                                 </div>
-                            </div>
-                            <div className="col-span-3">
-                                <TextField
-                                    label="Brand Colors (Hex)"
-                                    placeholder="#FFF, #000"
-                                    value={data.brandColors}
-                                    onChange={(e) => handleChange('brandColors', e.target.value)}
-                                />
                             </div>
                         </div>
 

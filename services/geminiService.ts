@@ -30,19 +30,22 @@ export const validateApiKey = async (apiKey: string): Promise<boolean> => {
     const cleanKey = apiKey.trim();
     if (!cleanKey) return false;
 
+    // The @google/genai SDK (Gemini 3) initializer
     const client = new GoogleGenAI({ apiKey: cleanKey });
 
-    await client.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: 'ping',
-    });
-    return true;
+    // Listing models is the safest way to validate an API Key without 404 model errors
+    const models = await client.models.list();
+    return !!models;
   } catch (error: any) {
     console.error("API Key Validation Error:", error);
-    // Extract a cleaner error message if possible
     const msg = error.message || "Unknown error";
-    if (msg.includes("API_KEY_INVALID")) throw new Error("API Key is invalid or expired.");
-    if (msg.includes("not found")) throw new Error("Specified model not found for your region/key.");
+    // Check for specific authentication/authorization errors
+    if (msg.includes("401") || msg.includes("API_KEY_INVALID") || msg.toLowerCase().includes("unauthorized")) {
+      throw new Error("API Key is invalid or expired.");
+    }
+    if (msg.includes("403") || msg.toLowerCase().includes("permission")) {
+      throw new Error("API Key doesn't have permission for this project.");
+    }
     throw new Error(`Validation failed: ${msg}`);
   }
 };

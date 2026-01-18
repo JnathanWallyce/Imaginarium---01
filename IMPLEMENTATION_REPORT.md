@@ -18,12 +18,20 @@
     - **Lightbox**: Clicking the image thumbnail itself opens a full-screen Lightbox view for detailed inspection.
     - **Download/Delete**: Integrated quick actions for downloading or removing images.
 
-## 3. Responsiveness Improvements
+## 3. Realism Mode (New Feature)
+- **Objective**: generate hyper-realistic images indistinguishable from real photos.
+- **Implementation**:
+    - Added a new **"Realism"** tab in the mode selector (Emerald Green theme).
+    - **Prompt Engineering**: Injected a specialized system prompt that instructs the AI to simulate a high-end **Phase One XF IQ4 150MP Camera**.
+    - **Constraints**: Strictly forbids text, watermarks, and "AI gloss". Enforces 8k resolution textures, natural lighting, and realistic imperfections (pores, dust, fabric weave).
+    - **UI**: Added a dedicated "Hyper-Realistic Prompt" input that guides the user to describe the scene as a photographer would.
+
+## 4. Responsiveness Improvements
 - **Main Layout**: Refactored the `<main>` container to use a flexible `flex-col lg:flex-row` layout.
 - **Sidebar**: The controls sidebar (`lg:w-[28rem]`) now stacks vertically on smaller screens and sits side-by-side on larger screens.
 - **Dynamic Adjustments**: Added logic to dim and disable the main interface when the gallery overlay is active, focusing user attention on the gallery.
 
-## 4. Verification
+## 5. Verification
 - **Build**: `npm run build` passes successfully.
 - **Runtime**: Confirmed the application loads and renders correctly via browser screenshot.
 - **Gallery**: Verified the DOM elements for the gallery and its interactions are present and correctly wired to React state.

@@ -5,9 +5,9 @@ export type ElementEffect = 'static' | 'motion' | 'bokeh';
 export type ImageResolution = '1K' | '2K' | '4K' | '8K';
 
 export interface ImageGenerationConfig {
-  mode: 'free' | 'marketing' | 'upscale';
+  mode: 'free' | 'marketing' | 'upscale' | 'realism';
   prompt?: string; // Used in free mode
-  
+
   // Marketing Mode Fields
   marketing?: {
     profession: string;
@@ -20,11 +20,11 @@ export interface ImageGenerationConfig {
   aspectRatio: AspectRatio;
   resolution: ImageResolution;
   subjectPosition: SubjectPosition;
-  
-  styleImage?: string; 
-  characterImages: string[]; 
+
+  styleImage?: string;
+  characterImages: string[];
   upscaleImage?: string; // Source for upscale mode
-  
+
   // 16:9 Specific
   blurConfig?: {
     enabled: boolean;

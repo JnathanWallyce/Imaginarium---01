@@ -119,6 +119,27 @@ export const generateImage = async (config: ImageGenerationConfig, apiKey: strin
         // We mention the text purely to define the "Negative Space", but explicitly forbid writing it.
         mainPrompt += `\nCOMPOSITION RULE: The image MUST have clean, empty negative space (background area) specifically reserved for a graphic designer to add text later. Ensure the composition balances the subject to create this empty space. DO NOT write the text "${h1Text}" or "${h2Text}" inside the image. Leave the space BLANK.`;
       }
+    } else if (config.mode === 'realism') {
+      // --- REALISM MODE ---
+      mainPrompt = `PHOTOREALISTIC GENERATION TASK:
+      You are a world-class photographer using a high-end Phase One XF IQ4 150MP Camera System with a Schneider Kreuznach 80mm LS f/2.8 Lens.
+      
+      CORE DIRECTIVE: Generate an image that is INDISTINGUISHABLE from reality. It must look like a raw, unedited photograph taken in the real world.
+      
+      VISUAL SPECS:
+      - TEXTURE: Extremly realistic skin pores, imperfections, fabric weave, dust particles, and material properties. NO "smooth" or "plastic" AI skin.
+      - LIGHTING: Natural, volumetric lighting with realistic falloff and exposure. Hard and soft shadows must be physically accurate.
+      - COLOUR: Natural, grounded color grading. Avoid oversaturated "AI colors". Use a slight film grain if appropriate for the scene.
+      - DEPTH: Realistic depth of field/bokeh.
+      
+      SUBJECT: ${config.prompt?.trim() || "A hyper-realistic scene."}
+      
+      STRICTLY FORBIDDEN:
+      - No "CGI" look, no "3D render" look, no "illustration" style.
+      - No text, no watermarks, no writing.
+      - No exaggerated anatomy or impossible physics.
+      
+      This image must deceive the human eye into believing it is a real photograph.`;
     } else {
       mainPrompt = config.prompt?.trim() || "Generate a high-fidelity cinematic image.";
     }

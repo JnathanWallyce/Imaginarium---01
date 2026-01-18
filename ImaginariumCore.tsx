@@ -132,7 +132,7 @@ export default function ImaginariumCore() {
   };
 
   // Mode Selection
-  const [mode, setMode] = useState<'free' | 'marketing' | 'upscale'>('free');
+  const [mode, setMode] = useState<'free' | 'marketing' | 'upscale' | 'realism'>('free');
 
   // Inputs
   const [prompt, setPrompt] = useState('');
@@ -464,6 +464,7 @@ export default function ImaginariumCore() {
 
     // Validation
     if (mode === 'free' && !prompt && !styleImage && characterImages.length === 0) return;
+    if (mode === 'realism' && !prompt && !styleImage) return;
     if (mode === 'marketing' && !marketing.profession) return;
     if (mode === 'upscale' && !upscaleImage) return;
 
@@ -490,7 +491,7 @@ export default function ImaginariumCore() {
       const newImage: GeneratedImage = {
         id: crypto.randomUUID(),
         url: base64Url,
-        prompt: mode === 'upscale' ? `Upscale to ${resolution}` : (mode === 'free' ? (prompt.trim() || 'Visual Reference') : `Marketing: ${marketing.profession}`),
+        prompt: mode === 'upscale' ? `Upscale to ${resolution}` : (mode === 'realism' ? `Realism: ${prompt.trim()}` : (mode === 'free' ? (prompt.trim() || 'Visual Reference') : `Marketing: ${marketing.profession}`)),
         aspectRatio: selectedRatio,
         createdAt: Date.now(),
       };
@@ -701,6 +702,7 @@ export default function ImaginariumCore() {
           {/* MODE TABS */}
           <div className="bg-gray-900 p-1 rounded-xl flex gap-1">
             <button onClick={() => setMode('free')} className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${mode === 'free' ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}>Free Mode</button>
+            <button onClick={() => setMode('realism')} className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${mode === 'realism' ? 'bg-emerald-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}>Realism</button>
             <button onClick={() => setMode('marketing')} className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${mode === 'marketing' ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}>Marketing Mode</button>
             <button onClick={() => setMode('upscale')} className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${mode === 'upscale' ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}>Upscale</button>
           </div>
@@ -715,6 +717,24 @@ export default function ImaginariumCore() {
                 placeholder="Describe your image..."
                 className="w-full h-24 bg-gray-900 border border-gray-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
               />
+            </div>
+          )}
+
+          {mode === 'realism' && (
+            <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <label className="text-sm font-medium text-emerald-400 ml-1 flex items-center gap-2">
+                <CameraIcon className="w-4 h-4" />
+                Hyper-Realistic Prompt
+              </label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe the scene as if it were a real photograph. The AI will handle the camera settings, lighting, and textures to make it look 100% real..."
+                className="w-full h-24 bg-gray-950 border border-emerald-500/30 rounded-xl p-4 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none placeholder:text-gray-600"
+              />
+              <p className="text-[10px] text-gray-500 ml-1">
+                * This mode forces raw, unedited photo quality. Text generation is disabled.
+              </p>
             </div>
           )}
 
@@ -912,15 +932,17 @@ export default function ImaginariumCore() {
             disabled={
               isGenerating ||
               (mode === 'free' && !prompt && !styleImage && characterImages.length === 0) ||
+              (mode === 'realism' && !prompt && !styleImage) ||
               (mode === 'marketing' && !marketing.profession) ||
               (mode === 'upscale' && !upscaleImage)
             }
             className={`w-full py-4 rounded-2xl font-semibold text-white shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 ${isGenerating ||
               (mode === 'free' && !prompt && !styleImage && characterImages.length === 0) ||
+              (mode === 'realism' && !prompt && !styleImage) ||
               (mode === 'marketing' && !marketing.profession) ||
               (mode === 'upscale' && !upscaleImage)
               ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25'
+              : (mode === 'realism' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-500/25' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25')
               }`}
           >
             {isGenerating ? (
@@ -930,8 +952,8 @@ export default function ImaginariumCore() {
               </>
             ) : (
               <>
-                {mode === 'upscale' ? <ArrowUpIcon className="w-5 h-5" /> : <SparklesIcon className="w-5 h-5" />}
-                {mode === 'marketing' ? 'Generate Ad' : (mode === 'upscale' ? `Upscale to ${resolution}` : 'Generate Image')}
+                {mode === 'upscale' ? <ArrowUpIcon className="w-5 h-5" /> : (mode === 'realism' ? <CameraIcon className="w-5 h-5" /> : <SparklesIcon className="w-5 h-5" />)}
+                {mode === 'marketing' ? 'Generate Ad' : (mode === 'upscale' ? `Upscale to ${resolution}` : (mode === 'realism' ? 'Snap Photo' : 'Generate Image'))}
               </>
             )}
           </button>

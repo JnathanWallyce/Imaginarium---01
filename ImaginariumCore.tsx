@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateImage, validateApiKey } from './services/geminiService';
 import { supabase, updateUserApiKey, getUserApiKey } from './services/supabaseClient';
+import { saveImageToGallery, getGalleryImages, deleteImageFromGallery } from './services/imageStorage';
 import { GeneratedImage, AspectRatio, SubjectPosition, BlurColor, ElementEffect, ImageResolution } from './types';
 import { ASPECT_RATIOS } from './constants';
 import {
@@ -45,6 +46,18 @@ const ArrowUpIcon = ({ className }: { className?: string }) => (
 const CheckCircleIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+  </svg>
+);
+
+const GalleryIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+  </svg>
+);
+
+const GridIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
   </svg>
 );
 
@@ -146,6 +159,27 @@ export default function ImaginariumCore() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [history, setHistory] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // Gallery State
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<GeneratedImage[]>([]);
+
+  // Load gallery on mount
+  useEffect(() => {
+    getGalleryImages().then(setGalleryImages).catch(console.error);
+  }, []);
+
+  const refreshGallery = () => {
+    getGalleryImages().then(setGalleryImages).catch(console.error);
+  };
+
+  const handleDeleteFromGallery = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this image?')) {
+      await deleteImageFromGallery(id);
+      refreshGallery();
+    }
+  };
 
   const [styleImage, setStyleImage] = useState<string | null>(null);
   const [characterImages, setCharacterImages] = useState<string[]>([]);
@@ -462,6 +496,10 @@ export default function ImaginariumCore() {
 
       setCurrentImage(newImage);
       saveToHistory(newImage);
+      // Save to permanent gallery
+      await saveImageToGallery(newImage);
+      refreshGallery(); // Update local gallery state
+      // Auto-open gallery on successful generation (optional, keeping it closed for now to focus on result)
     } catch (err: any) {
       console.error("Generation failed", err);
       setError(err.message || "Something went wrong during generation.");
@@ -520,6 +558,15 @@ export default function ImaginariumCore() {
             <div className="text-xs font-medium px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 hidden md:block">
               Gemini 3.0 Pro
             </div>
+            {/* Gallery Toggle */}
+            <button
+              onClick={() => setShowGallery(!showGallery)}
+              className={`p-2 transition-colors rounded-lg flex items-center gap-2 ${showGallery ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:text-indigo-400 hover:bg-gray-800'}`}
+              title="Open Gallery"
+            >
+              <GalleryIcon className="w-5 h-5" />
+              <span className="hidden md:inline text-xs font-bold">Galeria</span>
+            </button>
             {/* Update API Key Button */}
             <button
               onClick={() => {
@@ -551,10 +598,13 @@ export default function ImaginariumCore() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-8">
+      <main className="max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-8 relative z-10">
 
         {/* Left Column: Controls */}
-        <div className="w-full lg:w-[28rem] flex-shrink-0 space-y-6">
+        <div className={`w-full lg:w-[28rem] flex-shrink-0 space-y-6 transition-all duration-500 ${showGallery ? 'opacity-20 pointer-events-none lg:opacity-100 lg:pointer-events-auto' : ''}`}>
+          {/* ... existing controls content ... */}
+          {/* This wrapper is just purely logical in this replacement block to indicate context */}
+
 
           {/* Inspiration View (Hidden in Upscale Mode) */}
           {mode !== 'upscale' && (
@@ -970,6 +1020,87 @@ export default function ImaginariumCore() {
           </div>
         </div>
       </main>
+
+      {/* GALLERY OVERLAY */}
+      {showGallery && (
+        <div className="fixed inset-0 z-[100] bg-gray-950/95 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-300">
+          <div className="max-w-[1600px] mx-auto p-6 md:p-8 lg:p-10 space-y-8">
+            <div className="flex items-center justify-between sticky top-0 bg-gray-950/95 backdrop-blur-xl py-4 z-20 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <GalleryIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Minha Galeria</h2>
+                  <p className="text-gray-400 text-sm">{galleryImages.length} criações salvas</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowGallery(false)}
+                className="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-all shadow-lg border border-white/5"
+              >
+                <XCircleIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 p-1">
+              {galleryImages.length === 0 ? (
+                <div className="col-span-full h-96 flex flex-col items-center justify-center text-gray-500 border-2 border-dashed border-gray-800 rounded-3xl gap-4">
+                  <PhotoIcon className="w-16 h-16 opacity-20" />
+                  <p className="text-lg">Sua galeria está vazia</p>
+                  <button onClick={() => setShowGallery(false)} className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors">Criar Agora</button>
+                </div>
+              ) : (
+                galleryImages.map((img) => (
+                  <div key={img.id} className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300">
+                    <img
+                      src={img.url}
+                      alt={img.prompt}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+
+                    {/* Overlay Info */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out flex flex-col gap-2">
+                      <p className="text-white text-sm font-medium line-clamp-2 leading-snug">{img.prompt}</p>
+                      <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                        <span className="text-[10px] uppercase tracking-wider text-gray-400 bg-white/10 px-2 py-0.5 rounded">{img.aspectRatio}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setCurrentImage(img); setShowGallery(false); }}
+                            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-colors"
+                            title="Edit / View"
+                          >
+                            <EyeIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); downloadImage(img); }}
+                            className="p-2 rounded-full bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white backdrop-blur-sm transition-colors"
+                            title="Download"
+                          >
+                            <DownloadIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteFromGallery(img.id, e)}
+                            className="p-2 rounded-full bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white backdrop-blur-sm transition-colors"
+                            title="Delete"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Badge */}
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-[10px] text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                      {new Date(img.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

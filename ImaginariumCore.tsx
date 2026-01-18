@@ -163,6 +163,7 @@ export default function ImaginariumCore() {
   // Gallery State
   const [showGallery, setShowGallery] = useState(false);
   const [galleryImages, setGalleryImages] = useState<GeneratedImage[]>([]);
+  const [expandedImage, setExpandedImage] = useState<GeneratedImage | null>(null);
 
   // Load gallery on mount
   useEffect(() => {
@@ -1052,7 +1053,7 @@ export default function ImaginariumCore() {
                 </div>
               ) : (
                 galleryImages.map((img) => (
-                  <div key={img.id} className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300">
+                  <div key={img.id} onClick={() => setExpandedImage(img)} className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer">
                     <img
                       src={img.url}
                       alt={img.prompt}
@@ -1097,6 +1098,59 @@ export default function ImaginariumCore() {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LIGHTBOX OVERLAY */}
+      {expandedImage && (
+        <div
+          className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setExpandedImage(null)}
+        >
+          <button
+            onClick={() => setExpandedImage(null)}
+            className="absolute top-6 right-6 z-50 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur transition-all"
+          >
+            <XCircleIcon className="w-8 h-8" />
+          </button>
+
+          <div
+            className="relative max-w-7xl max-h-[90vh] w-full flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={expandedImage.url}
+              alt={expandedImage.prompt}
+              className="max-w-full max-h-[80vh] rounded-lg shadow-2xl object-contain"
+            />
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+              <button
+                onClick={() => { setCurrentImage(expandedImage); setExpandedImage(null); setShowGallery(false); }}
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all"
+              >
+                <SparklesIcon className="w-5 h-5" />
+                Edit / Upscale
+              </button>
+              <button
+                onClick={() => downloadImage(expandedImage)}
+                className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-full font-bold border border-gray-700 flex items-center gap-2 transition-all"
+              >
+                <DownloadIcon className="w-5 h-5" />
+                Download
+              </button>
+              <button
+                onClick={(e) => {
+                  handleDeleteFromGallery(expandedImage.id, e);
+                  setExpandedImage(null);
+                }}
+                className="px-6 py-3 bg-black/40 hover:bg-red-900/40 text-red-400 hover:text-red-300 rounded-full font-bold border border-red-900/30 flex items-center gap-2 transition-all"
+              >
+                <TrashIcon className="w-5 h-5" />
+                Delete
+              </button>
             </div>
           </div>
         </div>
